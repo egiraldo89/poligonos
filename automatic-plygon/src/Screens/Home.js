@@ -5,7 +5,7 @@ import { GOOGLE_MAP_KEY } from '../constants/googleMapKey';
 import imagePath from '../constants/imagePath';
 import MapViewDirections from 'react-native-maps-directions';
 import Loader from '../components/Loader';
-import { locationPermission, getCurrentLocation } from '../helper/helperFunction';
+import { _locationPermission, _getCurrentLocation } from '../helper/helperFunction';
 
 const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
@@ -44,30 +44,37 @@ const Home = ({ navigation }) => {
     }, [])
 
     const getLiveLocation = async () => {
-        const locPermissionDenied = await locationPermission()
-        if (locPermissionDenied) {
-            const { latitude, longitude, heading } = await getCurrentLocation()
-            console.log("get live location after 4 second",heading)
-            animate(latitude, longitude);
-            updateState({
-                heading: heading,
-                curLoc: { latitude, longitude },
-                coordinate: new AnimatedRegion({
-                    latitude: latitude,
-                    longitude: longitude,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA
+        try {
+            
+            const locPermissionDenied = await _locationPermission()
+            console.log('locPermissionDenied', locPermissionDenied);
+            if (locPermissionDenied) {
+                console.log('entro');
+                const { latitude, longitude, heading } = await _getCurrentLocation()
+                console.log("get live location after 4 second",heading)
+                animate(latitude, longitude);
+                updateState({
+                    heading: heading,
+                    curLoc: { latitude, longitude },
+                    coordinate: new AnimatedRegion({
+                        latitude: latitude,
+                        longitude: longitude,
+                        latitudeDelta: LATITUDE_DELTA,
+                        longitudeDelta: LONGITUDE_DELTA
+                    })
                 })
-            })
+            }
+        } catch (error) {
+            console.log('error', error);
         }
     }
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            getLiveLocation()
-        }, 6000);
-        return () => clearInterval(interval)
-    }, [])
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         getLiveLocation()
+    //     }, 6000);
+    //     return () => clearInterval(interval)
+    // }, [])
 
     const onPressLocation = () => {
         navigation.navigate('chooseLocation', { getCordinates: fetchValue })
@@ -151,8 +158,8 @@ const Home = ({ navigation }) => {
                         origin={curLoc}
                         destination={destinationCords}
                         apikey={GOOGLE_MAP_KEY}
-                        strokeWidth={6}
-                        strokeColor="red"
+                        strokeWidth={2}
+                        strokeColor="blue"
                         optimizeWaypoints={true}
                         onStart={(params) => {
                             console.log(`Started routing between "${params.origin}" and "${params.destination}"`);

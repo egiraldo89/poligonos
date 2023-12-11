@@ -1,17 +1,36 @@
 import { showMessage } from "react-native-flash-message"
 import { PermissionsAndroid, Platform } from "react-native";
 import Geolocation from 'react-native-geolocation-service';
+import * as Location from 'expo-location'
 
-export const getCurrentLocation = () =>
+export const _getCurrentLocation = async () => {
+    try {
+        const location = await Location.getCurrentPositionAsync({});
+        console.log('location', location);
+
+        const cords = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            heading: location?.coords?.heading,
+        };
+    return cords
+    } catch (error) {
+        console.log('error', error);
+    }
+}
+
+export const getCurrentLocation = () => {
+    console.warn('getCurrentLocation');
     new Promise((resolve, reject) => {
         Geolocation.getCurrentPosition(
             position => {
+                console.warn('position', position);
                 const cords = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                     heading: position?.coords?.heading,
                 };
-                console
+
                 resolve(cords);
             },
             error => {
@@ -21,6 +40,7 @@ export const getCurrentLocation = () =>
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
         )
     })
+}
 
 export const locationPermission = () => new Promise(async (resolve, reject) => {
     if (Platform.OS === 'ios') {
@@ -46,6 +66,11 @@ export const locationPermission = () => new Promise(async (resolve, reject) => {
         return reject(error);
     });
 });
+
+export const _locationPermission = async () => {
+    const { status } = await Location.requestPermissionsAsync()
+    return status;
+}
 
 const showError = (message) => {
     showMessage({
